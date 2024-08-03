@@ -37,12 +37,6 @@ public class ProductService {
 
     }
 
-    public Product getByCode(String code) {
-        Optional<Product> product = repository.findByCode(code);
-        return product.orElse(null);
-
-    }
-
     public Product save(Product product) {
         try {
             return repository.save(product);
