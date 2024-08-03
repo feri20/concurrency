@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api")
@@ -15,8 +17,9 @@ public class ProductController {
     private ProductService service;
 
     @GetMapping("/filter")
-    public ResponseEntity<List<Product>> filter(@RequestBody FilterRequest request) {
-        return ResponseEntity.ok(service.filterProduct(request));
+    public ResponseEntity<List<Product>> filter(@RequestBody FilterRequest request) throws ExecutionException, InterruptedException {
+        CompletableFuture<List<Product>> productCompletableFuture = service.filterProduct(request);
+        return ResponseEntity.ok(productCompletableFuture.get());
     }
     @GetMapping("/by-name")
     public ResponseEntity<Product> getByName(@RequestParam(name = "name")String name) {

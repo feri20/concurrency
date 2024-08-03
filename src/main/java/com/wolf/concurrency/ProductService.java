@@ -11,26 +11,20 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @AllArgsConstructor
 public class ProductService {
-
-    private ProductRepository repository;
-    private ExecutorService smsThreadPool;
-
-    public void sample(){
-
-    }
-
+    private final ProductRepository repository;
     @Async
     public CompletableFuture<List<Product>> filterProduct(FilterRequest request) {
+        ExecutorService queryThreadPull = Executors.newFixedThreadPool(10);
         Specification<Product> spec = Specification.where(ProductSpecification.hasPrice(request.getPrice())
                 .and(ProductSpecification.hasName(request.getName()))
                 .and(ProductSpecification.hasCode(request.getCode()))
                 .and(ProductSpecification.hasRank(request.getRank())));
-        List<Product> products = repository.findAll(spec);
-        return CompletableFuture.completedFuture(products);
+        return CompletableFuture.supplyAsync(()->repository.findAll(spec),queryThreadPull);
     }
 
     public List<Product> getAll() {
