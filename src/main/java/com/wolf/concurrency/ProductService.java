@@ -20,11 +20,12 @@ import java.util.concurrent.Executors;
 @AllArgsConstructor
 public class ProductService {
 
+    private final ExecutorService queryThreadPool = Executors.newFixedThreadPool(10);
+
     private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
     private final ProductRepository repository;
     @Async
     public CompletableFuture<List<Product>> filterProduct(FilterRequest request) {
-        ExecutorService queryThreadPool = Executors.newFixedThreadPool(10);
         Specification<Product> spec = Specification.where(ProductSpecification.hasPrice(request.getPrice())
                 .and(ProductSpecification.hasName(request.getName()))
                 .and(ProductSpecification.hasCode(request.getCode()))
