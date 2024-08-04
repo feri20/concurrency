@@ -2,11 +2,14 @@ package com.wolf.concurrency;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -16,15 +19,20 @@ import java.util.concurrent.Executors;
 @Service
 @AllArgsConstructor
 public class ProductService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
     private final ProductRepository repository;
     @Async
     public CompletableFuture<List<Product>> filterProduct(FilterRequest request) {
-        ExecutorService queryThreadPull = Executors.newFixedThreadPool(10);
+        ExecutorService queryThreadPool = Executors.newFixedThreadPool(10);
         Specification<Product> spec = Specification.where(ProductSpecification.hasPrice(request.getPrice())
                 .and(ProductSpecification.hasName(request.getName()))
                 .and(ProductSpecification.hasCode(request.getCode()))
                 .and(ProductSpecification.hasRank(request.getRank())));
-        return CompletableFuture.supplyAsync(()->repository.findAll(spec),queryThreadPull);
+        return CompletableFuture.supplyAsync(()->repository.findAll(spec),queryThreadPool).exceptionally(exception->{
+            logger.info("Exception has occurred {}",exception.getMessage());
+            return Collections.emptyList();
+        });
     }
 
     public List<Product> getAll() {
